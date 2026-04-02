@@ -1,5 +1,5 @@
 import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
-import { WebUsbReceiptPrinter } from '@point-of-sale/webusb-receipt-printer';
+import WebUsbReceiptPrinter from '@point-of-sale/webusb-receipt-printer';
 
 export interface USBDevice {
   productName?: string;
