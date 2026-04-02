@@ -18,17 +18,25 @@ class UsbPrinterService {
   async connect(): Promise<USBDevice | null> {
     try {
       this.device = new WebUsbReceiptPrinter();
+      
+      // Setup a promise to wait for the connection details
+      const connectionPromise = new Promise<USBDevice>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+        
+        this.device.addEventListener('connected', (deviceInfo: any) => {
+          clearTimeout(timeout);
+          this.connectedDevice = {
+            productName: deviceInfo.productName,
+            manufacturerName: deviceInfo.manufacturerName,
+            vendorId: deviceInfo.vendorId,
+            productId: deviceInfo.productId
+          };
+          resolve(this.connectedDevice);
+        });
+      });
+
       await this.device.connect();
-      
-      const usbDevice = (this.device as any).device as any; // Access underlying WebUSB device
-      this.connectedDevice = {
-        productName: usbDevice.productName,
-        manufacturerName: usbDevice.manufacturerName,
-        vendorId: usbDevice.vendorId,
-        productId: usbDevice.productId
-      };
-      
-      return this.connectedDevice;
+      return await connectionPromise;
     } catch (error) {
       console.error('USB connection failed:', error);
       this.device = null;

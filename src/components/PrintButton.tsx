@@ -26,8 +26,8 @@ export function PrintButton({ fileData }: PrintButtonProps) {
     try {
       const connected = await usbPrinter.connect();
       setDevice(connected);
-    } catch (error) {
-      alert('Failed to connect USB printer. Ensure it is plugged in and you are using Chrome on Android or Desktop.');
+    } catch (error: any) {
+      alert('Failed to connect USB printer: ' + (error?.message || 'Unknown error') + '\n\nEnsure it is plugged in and you are using Chrome on Android or Desktop.');
     } finally {
       setIsConnecting(false);
     }
