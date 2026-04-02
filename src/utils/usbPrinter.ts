@@ -1,5 +1,9 @@
 import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
 import WebUsbReceiptPrinter from '@point-of-sale/webusb-receipt-printer';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export interface USBDevice {
   productName?: string;
@@ -99,6 +103,45 @@ class UsbPrinterService {
           .newline(5) // Feed 5 lines so the print is visible past the cutter
           .cut()
           .encode();
+      } else if (fileData.fileType === 'pdf') {
+        // Handle PDF rasterization
+        const arrayBuffer = await fileData.file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const numPages = pdf.numPages;
+
+        encoder.initialize().align('center');
+
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          
+          // Determine scale to fit width (80mm standard is ~576px)
+          const targetWidth = 576;
+          const viewport = page.getViewport({ scale: 1 });
+          const scale = targetWidth / viewport.width;
+          const scaledViewport = page.getViewport({ scale });
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('Could not create canvas context');
+
+          canvas.width = scaledViewport.width;
+          canvas.height = scaledViewport.height;
+
+          await page.render({
+            canvasContext: context,
+            viewport: scaledViewport
+          }).promise;
+
+          // Add page image to encoder
+          encoder.image(canvas, targetWidth, scaledViewport.height, 'atkinson');
+          
+          // Add small gap between pages if multiple
+          if (i < numPages) {
+            encoder.newline(2);
+          }
+        }
+
+        result = encoder.newline(6).cut().encode();
       } else if (fileData.fileType === 'text' && fileData.htmlContent) {
         // Handle plain text
         result = encoder

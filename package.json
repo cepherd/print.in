@@ -14,6 +14,7 @@
     "@point-of-sale/receipt-printer-encoder": "^3.0.3",
     "@point-of-sale/webusb-receipt-printer": "^2.0.0",
     "mammoth": "^1.12.0",
+    "pdfjs-dist": "4.1.392",
     "react": "^19",
     "react-dom": "^19"
   },
