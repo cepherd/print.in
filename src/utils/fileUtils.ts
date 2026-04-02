@@ -69,6 +69,38 @@ export function getFileTypeCategory(file: File): string {
 }
 
 /**
+ * Detect if the current device is a mobile device (phone or tablet)
+ */
+export function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  
+  // Windows Phone must come first because its UA also contains "Android"
+  if (/windows phone/i.test(userAgent)) {
+    return true;
+  }
+
+  if (/android/i.test(userAgent)) {
+    return true;
+  }
+
+  // iOS detection from https://stackoverflow.com/a/9039885/177710
+  if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
+    return true;
+  }
+
+  // Check for iPad on iOS 13+
+  if (navigator.maxTouchPoints &&
+      navigator.maxTouchPoints > 2 &&
+      /MacIntel/.test(navigator.platform)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Format file size to human-readable format
  */
 export function formatFileSize(bytes: number): string {
