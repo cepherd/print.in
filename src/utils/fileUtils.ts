@@ -69,6 +69,15 @@ export function getFileTypeCategory(file: File): string {
 }
 
 /**
+ * Detect if the current device is Android
+ */
+export function isAndroid(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  return /android/i.test(userAgent);
+}
+
+/**
  * Detect if the current device is a mobile device (phone or tablet)
  */
 export function isMobileDevice(): boolean {
@@ -81,7 +90,7 @@ export function isMobileDevice(): boolean {
     return true;
   }
 
-  if (/android/i.test(userAgent)) {
+  if (isAndroid()) {
     return true;
   }
 
