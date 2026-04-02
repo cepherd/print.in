@@ -18,6 +18,8 @@ interface PrintButtonProps {
 export function PrintButton({ fileData }: PrintButtonProps) {
   const [device, setDevice] = React.useState<USBDevice | null>(usbPrinter.getConnectedDevice());
   const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isPrinting, setIsPrinting] = React.useState(false);
+  const [printStatus, setPrintStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
 
   if (!fileData) return null;
 
@@ -35,10 +37,17 @@ export function PrintButton({ fileData }: PrintButtonProps) {
 
   const handlePrintUSB = async () => {
     if (!device) return;
+    setIsPrinting(true);
+    setPrintStatus('idle');
     try {
       await usbPrinter.print(fileData);
+      setPrintStatus('success');
+      setTimeout(() => setPrintStatus('idle'), 3000);
     } catch (error) {
+      setPrintStatus('error');
       alert('Print failed: ' + (error as Error).message);
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -79,9 +88,29 @@ export function PrintButton({ fileData }: PrintButtonProps) {
           {isConnecting ? 'Searching...' : 'Connect USB Printer'}
         </button>
       ) : (
-        <button className="usb-button print-now" onClick={handlePrintUSB}>
-          <span className="dot pulse"></span>
-          Print via USB ({device.productName || 'Printer'})
+        <button 
+          className={`usb-button ${isPrinting ? 'printing' : ''} ${printStatus === 'success' ? 'success' : ''}`} 
+          onClick={handlePrintUSB}
+          disabled={isPrinting}
+        >
+          {isPrinting ? (
+            <>
+              <span className="spinner"></span>
+              Sending to Printer...
+            </>
+          ) : printStatus === 'success' ? (
+            <>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Printed Successfully!
+            </>
+          ) : (
+            <>
+              <span className="dot pulse"></span>
+              Print via USB ({device.productName || 'Printer'})
+            </>
+          )}
         </button>
       )}
     </div>

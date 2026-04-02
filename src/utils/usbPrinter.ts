@@ -80,7 +80,7 @@ class UsbPrinterService {
 
     const encoder = new ReceiptPrinterEncoder({
       language: 'esc-pos',
-      width: 32, // Default standard for 58mm printers. 42/48 for 80mm.
+      width: 48, // 48 is standard for 80mm. 32 for 58mm. 48 is safer for most desktop/thermal.
     });
 
     try {
@@ -95,7 +95,8 @@ class UsbPrinterService {
         result = encoder
           .initialize()
           .align('center')
-          .image(img, 384, 384, 'threshold') // 384px is standard for 58mm
+          .image(img, 576, 576, 'atkinson') // Atkinson dithering is much better than threshold
+          .newline(5) // Feed 5 lines so the print is visible past the cutter
           .cut()
           .encode();
       } else if (fileData.fileType === 'text' && fileData.htmlContent) {
@@ -103,19 +104,23 @@ class UsbPrinterService {
         result = encoder
           .initialize()
           .text(fileData.htmlContent)
-          .newline()
+          .newline(6) // Feed 6 lines
           .cut()
           .encode();
       } else {
-        // Fallback or generic message
+        // Generic fallback
         result = encoder
           .initialize()
-          .text(`Printing: ${fileData.file.name}`)
+          .align('center')
+          .text('--- Print.in Direct USB ---')
           .newline()
-          .text('Type: ' + fileData.fileType)
+          .align('left')
+          .text(`File: ${fileData.file.name}`)
           .newline()
-          .text('Direct USB printing for this format is experimental.')
+          .text(`Type: ${fileData.fileType}`)
           .newline()
+          .text(`Size: ${fileData.file.size} bytes`)
+          .newline(8)
           .cut()
           .encode();
       }
