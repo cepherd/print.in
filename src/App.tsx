@@ -40,9 +40,9 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>File Upload, Preview & Print</h1>
+        <h1>Print.in</h1>
         <p className="subtitle">
-          Upload any file, preview it, and print with full printer compatibility
+          The universal printer. Connect any USB printer directly or print through your browser.
         </p>
       </header>
 
@@ -63,9 +63,7 @@ export function App() {
                     onClear={handleClear} 
                     settings={printSettings}
                   />
-                  <div className="print-controls no-print">
-                    <PrintButton fileData={fileData} />
-                  </div>
+                  <PrintButton fileData={fileData} />
                 </div>
               </div>
               <aside className="preview-sidebar no-print">
